@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人主页 - AI融合版</title>
+    <link href="https://hpi-hub.tos-cn-beijing.volces.com/haisnap/cdn/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.loli.net/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- React相关依赖 -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 高德地图JS API -->
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.15"></script>
+    <!-- 动画CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏样式 */
+        nav {
+            background: rgba(26, 35, 126, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #64ffda;
+        }
+        
+        /* Hero区域样式 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 6rem 2rem 2rem;
+        }
+        
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #64ffda, #00b0ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            background: linear-gradient(45deg, #64ffda, #00b0ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: white;
+            border: 3px solid white;
+            box-shadow: 0 8px 30px rgba(0, 176, 255, 0.4);
+            animation: pulse 3s infinite;
+            transition: transform 0.3s ease;
+        }
+        
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 打字机效果 */
+        .typing-animation {
+            overflow: hidden;
+            border-right: 3px solid #00b0ff;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: 0.15em;
+            animation: 
+                typing 3.5s steps(40, end) forwards,
+                remove-cursor 0.1s forwards 3.5s;
+        }
+        
+        @keyframes remove-cursor {
+            to {
+                border-right: none;
+            }
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #00b0ff; }
+        }
+        
+        
+        /* 导航栏悬停效果增强 */
+        .nav-links a {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #64ffda;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        
+        /* 按钮悬停效果增强 */
+        .hero-content button {
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .hero-content button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        
+        .hero-content button:hover::before {
+            left: 100%;
+        }
+        
+        .hero-content button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 176, 255, 0.3);
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 8px 30px rgba(0, 176, 255, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 40px rgba(0, 176, 255, 0.6);
+            }
+            100% {
+                box-shadow: 0 8px 30px rgba(0, 176, 255, 0.4);
+            }
+        }
+        
+        /* 内容区块样式 */
+        .section {
+            padding: 4rem 2rem;
+            background: white;
+        }
+        
+        .section:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 3rem;
+            color: #1a237e;
+        }
+        
+        /* 技能卡片样式 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .skill-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .skill-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .skill-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #3949ab;
+        }
+        
+        /* 项目展示样式 */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .project-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .project-image {
+            height: 200px;
+            background: linear-gradient(45deg, #64ffda, #00b0ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 5rem;
+        }
+        
+        .project-content {
+            padding: 1.5rem;
+        }
+        
+        /* 联系方式样式 */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .contact-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .contact-icon {
+            font-size: 2.5rem;
+            color: #3949ab;
+            margin-bottom: 1rem;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-content p {
+                font-size: 1.1rem;
+            }
+            
+            .section {
+                padding: 3rem 1rem;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* 功能标签页样式 */
+        .feature-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .feature-tab {
+            padding: 12px 24px;
+            margin: 0 5px 10px;
+            border: none;
+            background-color: #f0f0f0;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #000000;
+        }
+        
+        .feature-tab.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .feature-tab:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
+        
+        .feature-content {
+            display: none;
+        }
+        
+        .feature-content.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        /* 电子钢琴样式 */
+        .piano-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .piano-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://picsum.photos/800/600?blur=2') no-repeat center;
+            background-size: cover;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .piano-container > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .piano-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .controls-left,
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .controls-right {
+            justify-content: flex-end;
+        }
+
+        .piano-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: white;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            flex: 1;
+        }
+
+        .control-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: rgba(16, 185, 129, 0.8);
+            border-color: rgba(16, 185, 129, 1);
+        }
+
+        .control-btn.muted {
+            background: rgba(239, 68, 68, 0.8);
+            border-color: rgba(239, 68, 68, 1);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .volume-value {
+            color: white;
+            font-size: 0.8em;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        .piano-keyboard {
+            background: linear-gradient(to bottom, #2c3e50, #34495e);
+            border-radius: 12px;
+            padding: 30px 20px 20px;
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .keys-container {
+            position: relative;
+            height: 200px;
+            max-width: 100%;
+            overflow-x: visible;
+            overflow-y: visible;
+        }
+
+        .white-keys {
+            display: flex;
+            gap: 2px;
+            height: 100%;
+        }
+
+        .black-keys {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 120px;
+        }
+
+        .piano-key {
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 10px 5px;
+            font-size: 0.7em;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .white-key {
+            width: 54px;
+            height: 200px;
+            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 8px 8px;
+            color: #495057;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .white-key:hover {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            transform: translateY(2px);
+        }
+
+        .white-key.active {
+            background: linear-gradient(to bottom, #4f46e5, #6366f1);
+            color: white;
+            transform: translateY(4px);
+            box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .black-key {
+            width: 30px;
+            height: 120px;
+            background: linear-gradient(to bottom, #212529, #343a40);
+            border: 1px solid #000;
+            border-radius: 0 0 6px 6px;
+            color: white;
+            position: absolute;
+            z-index: 2;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .black-key:hover {
+            background: linear-gradient(to bottom, #343a40, #495057);
+            transform: translateY(2px);
+        }
+
+        .black-key.active {
+            background: linear-gradient(to bottom, #6366f1, #4f46e5);
+            transform: translateY(4px);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .key-label {
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .key-binding {
+            font-size: 0.8em;
+            opacity: 0.7;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .black-key .key-binding {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .piano-instructions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9em;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 乐谱样式 */
+        .sheet-music-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .sheet-music-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sheet-music-header h3 {
+            color: white;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .sheet-music {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+        
+        .note-row {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .note-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .note-box {
+            width: 40px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            color: #333;
+            transition: all 0.2s ease;
+        }
+
+        .note-box:hover {
+            transform: translateY(-3px);
+            background: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .note-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+
+        .note-box .key-binding {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .note-arrow {
+            font-size: 1.2em;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 键盘动画效果 */
+        @keyframes keyPress {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(3px); }
+            100% { transform: translateY(0); }
+        }
+
+        .piano-key.active {
+            animation: keyPress 0.15s ease;
+        }
+
+        /* 音波效果 */
+        .piano-key.active::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 60px;
+                height: 60px;
+                opacity: 0;
+            }
+        }
+
+        /* 地图样式 */
+        #map {
+            width: 100%;
+            height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 游戏样式 */
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            background-color: #f0f0f0;
+            border: 2px solid #333;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.05s ease;
+        }
+
+        .triangle {
+            background-color: transparent;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            background-color: #3498db;
+        }
+
+        .circle {
+            border-radius: 50%;
+            background-color: #e74c3c;
+        }
+
+        .square {
+            background-color: #2ecc71;
+        }
+
+        .selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .matched {
+            animation: fadeOut 0.1s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+
+        .score-container {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        /* 错误处理样式 */
+        .piano-error {
+            text-align: center;
+            padding: 40px 20px;
+            color: white;
+        }
+        
+        .piano-error h3 {
+            margin: 15px 0;
+            font-size: 1.5em;
+        }
+        
+        .piano-error p {
+            opacity: 0.8;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .piano-container {
+                padding: 20px;
+            }
+
+            .piano-controls {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .controls-left,
+            .controls-right {
+                width: 100%;
+                justify-content: center;
+                flex: none;
+            }
+
+            .piano-title {
+                width: 100%;
+                flex: none;
+            }
+
+            .keys-container {
+                height: 160px;
+            }
+
+            .white-key {
+                width: 45px;
+                height: 160px;
+            }
+
+            .black-key {
+                width: 25px;
+                height: 100px;
+            }
+
+            .piano-instructions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .instruction-item {
+                font-size: 0.8em;
+            }
+            
+            .sheet-music {
+                padding: 10px;
+                gap: 8px;
+            }
+            
+            .note-box {
+                width: 35px;
+                height: 55px;
+            }
+            
+            .note-name {
+                font-size: 1.1em;
+            }
+            
+            .sheet-music-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            #map {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .piano-container {
+                padding: 15px;
+            }
+
+            .white-key {
+                width: 38px;
+                height: 140px;
+                font-size: 0.6em;
+            }
+
+            .black-key {
+                width: 22px;
+                height: 85px;
+                font-size: 0.6em;
+            }
+
+            .keys-container {
+                height: 140px;
+            }
+
+            .volume-control {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .volume-slider {
+                width: 60px;
+            }
+            
+            .note-box {
+                width: 30px;
+                height: 50px;
+            }
+            
+            .note-name {
+                font-size: 0.9em;
+            }
+            
+            .note-box .key-binding {
+                font-size: 0.7em;
+                padding: 1px 3px;
+            }
+
+            #map {
+                height: 300px;
+            }
+
+            .game-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 光线跟随效果 -->
+    <div id="mouseLight" style="position: fixed; pointer-events: none; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%); z-index: 9999; transform: translate(-50%, -50%); transition: transform 0.1s ease-out;"></div>
+    
+    
+    <!-- 导航栏 -->
+    <nav>
+        <div class="container nav-container">
+            <a href="#" class="logo">Code & Craft</a>
+            <ul class="nav-links">
+                <li><a href="#home">首页</a></li>
+                <li><a href="#about">关于我</a></li>
+                <li><a href="#skills">技能</a></li>
+                <li><a href="#projects">项目</a></li>
+                <li><a href="#contact">联系我</a></li>
+                <li><a href="#features">互动功能</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero区域 -->
+    <section id="home" class="hero">
+        <div class="container hero-content animate-fade-in-up">
+            <div class="avatar">👤</div>
+            <h1 class="typing-animation">欢迎来到我的个人空间</h1>
+            <p>AI开发者 | 创意设计师 | 技术爱好者</p>
+            <div style="margin-top: 2rem;">
+                <button onclick="document.getElementById('about').scrollIntoView({ behavior: 'smooth' })" style="background: linear-gradient(45deg, #64ffda, #00b0ff); 
+                             border: none; 
+                             padding: 12px 30px; 
+                             border-radius: 25px; 
+                             color: white; 
+                             font-weight: 500;
+                             cursor: pointer;
+                             transition: transform 0.3s ease;">
+                    了解更多
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我 -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section-title">关于我</h2>
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <p style="font-size: 1.2rem; line-height: 1.8; margin-bottom: 2rem;">
+                    我是一名热衷于创造沉浸式数字体验的设计师和开发者，
+                    专注于创建美观、高效且用户友好的数字体验，
+                    热爱学习新技术，享受解决复杂问题的过程。
+                </p>
+                <p style="font-size: 1.2rem; line-height: 1.8;">
+                    在业余时间，我喜欢学习AI知识、阅读技术博客和探索新的技术趋势。
+                    我相信技术的力量可以改变世界，让生活变得更加美好。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技能展示 -->
+    <section id="skills" class="section">
+        <div class="container">
+            <h2 class="section-title">技术技能</h2>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-icon">⚛️</div>
+                    <h3>前端开发</h3>
+                    <p>React, Vue, Angular, TypeScript, HTML5, CSS3</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">🚀</div>
+                    <h3>后端开发</h3>
+                    <p>Node.js, Python, Java, Spring Boot, Express</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">📱</div>
+                    <h3>嵌入式开发</h3>
+                    <p>Linux, QT6, ESP32, STM32</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">🎨</div>
+                    <h3>AI内容制作</h3>
+                    <p>文字语言输出，视频图片生成，语音合成</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目展示 -->
+    <section id="projects" class="section">
+        <div class="container">
+            <h2 class="section-title">精选项目</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-image">📊</div>
+                    <div class="project-content">
+                        <h3>数据分析平台</h3>
+                        <p>为企业提供实时数据分析和可视化解决方案</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-image">🛒</div>
+                    <div class="project-content">
+                        <h3>小型移动式AI助手</h3>
+                        <p>基于AI的移动应用，提供语音识别、语音合成、文字语言输出等功能</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-image">📱</div>
+                    <div class="project-content">
+                        <h3>LLM模型</h3>
+                        <p>基于Transformer架构的大型语言模型，用于文本生成、翻译、问答等任务</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系方式 -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2 class="section-title">联系我</h2>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">📧</div>
+                    <h3>邮箱</h3>
+                    <p>2097007170@qq.com</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📱</div>
+                    <h3>电话</h3>
+                    <p>+86 123 4567 7890</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">💼</div>
+                    <h3>微信</h3>
+                    <p>x2097007170</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 功能展示区 -->
+    <section id="features" class="section" style="background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white;">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">互动功能</h2>
+            
+            <!-- 标签页切换 -->
+            <div class="feature-tabs">
+                <button class="feature-tab active" data-tab="piano">电子钢琴</button>
+                <button class="feature-tab" data-tab="map">地图展示</button>
+                <button class="feature-tab" data-tab="game">小游戏</button>
+            </div>
+            
+            <!-- 标签页内容 -->
+            <div class="feature-content active" id="piano-content">
+                <div id="piano-root" style="width: 100%;"></div>
+            </div>
+            
+            <div class="feature-content" id="map-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 10px;">南宁地图</h3>
+                    <p style="opacity: 1;">探索南宁的城市风光</p>
+                </div>
+                <div id="map"></div>
+            </div>
+            
+            <div class="feature-content" id="game-content">
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl font-bold text-white mb-2">形状匹配</h1>
+                    <p class="text-1xl text-white">点击相同形状使它们消失！</p>
+                </div>
+
+                <div style="display: flex; justify-content: center;">
+                    <div class="game-container"></div>
+                </div>
+                
+                <div class="score-container">
+                    <p>匹配次数: <span id="score">0</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 优化Canvas性能 - 解决getImageData多次读取警告
+        (function() {
+            // 存储原始的getContext方法
+            const originalGetContext = HTMLCanvasElement.prototype.getContext;
+            
+            // 重写getContext方法
+            HTMLCanvasElement.prototype.getContext = function(type, options) {
+                // 如果是2d上下文且没有指定willReadFrequently选项，自动添加
+                if (type === '2d' && options === undefined) {
+                    options = { willReadFrequently: true };
+                } else if (type === '2d' && options && options.willReadFrequently === undefined) {
+                    options.willReadFrequently = true;
+                }
+                
+                return originalGetContext.call(this, type, options);
+            };
+        })();
+        
+        // 平滑滚动效果
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(26, 35, 126, 0.98)';
+            } else {
+                nav.style.background = 'rgba(26, 35, 126, 0.95)';
+            }
+        });
+
+        // 功能标签页切换逻辑
+        document.querySelectorAll('.feature-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有标签的active状态
+                document.querySelectorAll('.feature-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.feature-content').forEach(c => c.classList.remove('active'));
+                
+                // 添加当前标签的active状态
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-content`).classList.add('active');
+                
+                // 如果是地图标签，初始化地图
+                if (tabId === 'map' && !window.mapInitialized) {
+                    initMap();
+                }
+                
+                // 如果是游戏标签，初始化游戏
+                if (tabId === 'game' && !window.gameInitialized) {
+                    initGame();
+                }
+            });
+        });
+
+        // 初始化地图
+        function initMap() {
+            // 确保地图只初始化一次
+            if (window.mapInitialized) return;
+            window.mapInitialized = true;
+            
+            // 创建地图实例
+            const map = new AMap.Map('map', {
+                center: [108.3677, 22.8170], // 南宁市经纬度
+                zoom: 12
+            });
+            
+            // 添加定位控件
+            AMap.plugin(['AMap.Geolocation'], function() {
+                const geolocation = new AMap.Geolocation({
+                    enableHighAccuracy: true, // 高精度定位
+                    timeout: 10000, // 定位超时时间
+                    buttonPosition: 'LT', // 定位按钮位置（左上角）
+                    buttonOffset: new AMap.Pixel(0, 0), // 定位按钮偏移量
+                    zoomToAccuracy: true // 定位成功后自动缩放至合适级别
+                });
+                
+                map.addControl(geolocation);
+                
+                // 添加定位成功监听
+                geolocation.on('complete', function(data) {
+                    console.log('定位成功:', data);
+                });
+                
+                // 添加定位失败监听
+                geolocation.on('error', function(data) {
+                    console.log('定位失败:', data);
+                });
+            });
+
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 确保游戏只初始化一次
+            if (window.gameInitialized) return;
+            window.gameInitialized = true;
+            
+            // 游戏状态
+            const gameState = {
+                shapes: [],
+                selectedShape: null,
+                score: 0,
+                gameContainer: document.querySelector('.game-container'),
+                scoreElement: document.getElementById('score')
+            };
+            
+            // 形状类型
+            const SHAPE_TYPES = {
+                TRIANGLE: 'triangle',
+                CIRCLE: 'circle',
+                SQUARE: 'square'
+            };
+            
+            // 初始化游戏
+            function resetGame() {
+                gameState.shapes = [];
+                gameState.selectedShape = null;
+                gameState.score = 0;
+                gameState.gameContainer.innerHTML = '';
+                updateScoreDisplay();
+            }
+            
+            // 创建形状
+            function createShapes() {
+                // 创建2个三角形
+                for (let i = 0; i < 2; i++) {
+                    createShape(SHAPE_TYPES.TRIANGLE);
+                }
+                
+                // 创建2个圆形
+                for (let i = 0; i < 2; i++) {
+                    createShape(SHAPE_TYPES.CIRCLE);
+                }
+
+                // 创建2个正方形
+                for (let i = 0; i < 2; i++) {
+                    createShape(SHAPE_TYPES.SQUARE);
+                }
+            }
+            
+            // 创建单个形状并随机位置
+            function createShape(type) {
+                const shape = document.createElement('div');
+                shape.classList.add('shape', type);
+                shape.dataset.type = type;
+                
+                // 在容器内生成随机位置
+                const containerWidth = gameState.gameContainer.clientWidth;
+                const containerHeight = gameState.gameContainer.clientHeight;
+                const shapeSize = 40; // 形状大小
+                
+                // 计算允许的最大位置，确保形状完全在容器内
+                const maxX = containerWidth - shapeSize;
+                const maxY = containerHeight - shapeSize;
+                
+                let posX, posY, overlap;
+                
+                // 持续生成位置直到找到一个不重叠的位置
+                do {
+                    overlap = false;
+                    posX = Math.floor(Math.random() * maxX);
+                    posY = Math.floor(Math.random() * maxY);
+                    
+                    // 检查与现有形状是否重叠
+                    for (const existingShape of gameState.shapes) {
+                        const existingX = parseInt(existingShape.style.left);
+                        const existingY = parseInt(existingShape.style.top);
+                        
+                        // 定义形状间的最小距离，避免重叠
+                        const minDistance = shapeSize + 10;
+                        
+                        // 检查新位置是否与任何现有形状太接近
+                        if (Math.abs(posX - existingX) < minDistance && Math.abs(posY - existingY) < minDistance) {
+                            overlap = true;
+                            break;
+                        }
+                    }
+                } while (overlap);
+                
+                shape.style.left = `${posX}px`;
+                shape.style.top = `${posY}px`;
+                
+                // 直接为形状绑定点击事件，提升响应速度
+                shape.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleShapeClick(shape);
+                });
+                
+                gameState.gameContainer.appendChild(shape);
+                gameState.shapes.push(shape);
+                
+                return shape;
+            }
+            
+            // 处理形状点击
+            function handleShapeClick(shape) {
+                // 如果还没有选中形状
+                if (!gameState.selectedShape) {
+                    gameState.selectedShape = shape;
+                    shape.classList.add('selected');
+                    return;
+                }
+                
+                // 如果点击了同一个形状两次
+                if (gameState.selectedShape === shape) {
+                    gameState.selectedShape.classList.remove('selected');
+                    gameState.selectedShape = null;
+                    return;
+                }
+                
+                // 检查形状是否匹配
+                if (gameState.selectedShape.dataset.type === shape.dataset.type) {
+                    // 形状匹配 - 使它们消失
+                    gameState.selectedShape.classList.add('matched');
+                    shape.classList.add('matched');
+                    
+                    // 移除'selected'类
+                    gameState.selectedShape.classList.remove('selected');
+                    
+                    // 更新分数
+                    gameState.score++;
+                    updateScoreDisplay();
+                    
+                    // 存储形状类型并立即重置选中的形状，以便更快地点击
+                    const shapeType = gameState.selectedShape.dataset.type;
+                    const matchedShape1 = gameState.selectedShape;
+                    const matchedShape2 = shape;
+                    gameState.selectedShape = null;
+                    
+                    // 立即生成新的形状，提升游戏流畅度
+                    createShape(shapeType);
+                    createShape(shapeType);
+                    
+                    // 动画后移除形状
+                    setTimeout(() => {
+                        // 从DOM和游戏状态中移除形状
+                        const index1 = gameState.shapes.indexOf(matchedShape1);
+                        const index2 = gameState.shapes.indexOf(matchedShape2);
+                        
+                        if (index1 !== -1) {
+                            gameState.shapes.splice(index1, 1);
+                            matchedShape1.remove();
+                        }
+                        
+                        if (index2 !== -1) {
+                            gameState.shapes.splice(index2 > index1 ? index2 - 1 : index2, 1);
+                            matchedShape2.remove();
+                        }
+                    }, 100);
+                } else {
+                    // 形状不匹配 - 取消选择两者
+                    gameState.selectedShape.classList.remove('selected');
+                    gameState.selectedShape = null;
+                }
+            }
+            
+            // 更新分数显示
+            function updateScoreDisplay() {
+                gameState.scoreElement.textContent = gameState.score;
+            }
+            
+            // 启动游戏
+            resetGame();
+            createShapes();
+        }
+    </script>
+
+    <!-- 电子钢琴React组件 -->
+    <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+    
+    const Piano = () => {
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [volume, setVolume] = useState(0.5);
+      const [isMuted, setIsMuted] = useState(false);
+      const [activeKeys, setActiveKeys] = useState(new Set());
+      const [audioContextSupported, setAudioContextSupported] = useState(true);
+      
+      const audioContextRef = useRef(null);
+      const oscillatorsRef = useRef(new Map());
+      const gainNodeRef = useRef(null);
+      const isInitializedRef = useRef(false);
+      
+      // 记录活跃音符的防抖计时器
+      const activeKeysTimersRef = useRef(new Map());
+      // 添加按键状态跟踪，防止重复触发
+      const keysPressedRef = useRef({});
+      // 添加最后播放时间戳，用于节流
+      const lastPlayedTimeRef = useRef({});
+      // 添加全局最后播放时间戳，用于全局节流
+      const globalLastPlayedRef = useRef(0);
+
+      // 钢琴键配置 - 包含白键和黑键，扩展白键范围
+      const keys = [
+        { note: 'C', frequency: 261.63, type: 'white', keyBinding: 'a' },
+        { note: 'C#', frequency: 277.18, type: 'black', keyBinding: 'w' },
+        { note: 'D', frequency: 293.66, type: 'white', keyBinding: 's' },
+        { note: 'D#', frequency: 311.13, type: 'black', keyBinding: 'e' },
+        { note: 'E', frequency: 329.63, type: 'white', keyBinding: 'd' },
+        { note: 'F', frequency: 349.23, type: 'white', keyBinding: 'f' },
+        { note: 'F#', frequency: 369.99, type: 'black', keyBinding: 't' },
+        { note: 'G', frequency: 392.00, type: 'white', keyBinding: 'g' },
+        { note: 'G#', frequency: 415.30, type: 'black', keyBinding: 'y' },
+        { note: 'A2', frequency: 440.00, type: 'white', keyBinding: 'h' },
+        { note: 'A2#', frequency: 466.16, type: 'black', keyBinding: 'u' },
+        { note: 'B2', frequency: 493.88, type: 'white', keyBinding: 'j' },
+        { note: 'C2', frequency: 523.25, type: 'white', keyBinding: 'k' },
+        { note: 'C#2', frequency: 554.37, type: 'black', keyBinding: 'o' },
+        { note: 'D2', frequency: 587.33, type: 'white', keyBinding: 'l' },
+        { note: 'D#2', frequency: 622.25, type: 'black', keyBinding: 'p' },
+        { note: 'E2', frequency: 659.25, type: 'white', keyBinding: ';' },
+        { note: 'F2', frequency: 698.46, type: 'white', keyBinding: "'" },
+        { note: 'G2', frequency: 783.99, type: 'white', keyBinding: '\\' }
+      ];
+
+      // Call of Silence 乐谱
+      const fullSheetMusic = [
+        // 第一行9个音符
+        { note: ';', keyBinding: 'E2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: '\\', keyBinding: 'G2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: 'J', keyBinding: 'B2' },
+        { note: 'K', keyBinding: 'C2' },
+        
+        // 第二行9个音符
+        { note: "'", keyBinding: 'E2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: 'G', keyBinding: 'G' },
+        { note: "'", keyBinding: 'E2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: "'", keyBinding: 'E2' },
+        { note: 'K', keyBinding: 'C2' },
+        
+        // 第三行10个音符
+        { note: "'", keyBinding: 'E2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: '\\', keyBinding: 'G2' },
+        { note: '\\', keyBinding: 'G2' },
+        { note: '\\', keyBinding: 'G2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'K', keyBinding: 'C2' },
+        
+        // 第四行10个音符
+        { note: 'H', keyBinding: 'A2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'K', keyBinding: 'C2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: "'", keyBinding: 'E2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'L', keyBinding: 'D2' },
+        { note: 'K', keyBinding: 'C2' },
+      ];
+
+      // 检查Web Audio API支持
+      useEffect(() => {
+        if (!window.AudioContext && !window.webkitAudioContext) {
+          console.error('浏览器不支持Web Audio API');
+          setAudioContextSupported(false);
+        }
+      }, []);
+
+      // 初始化 Web Audio API
+      const initAudioContext = useCallback(() => {
+        if (isInitializedRef.current || !audioContextSupported) return;
+
+        try {
+          // 仅在用户交互时创建AudioContext，避免自动播放限制
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContext) {
+            setAudioContextSupported(false);
+            return;
+          }
+          
+          audioContextRef.current = new AudioContext();
+          gainNodeRef.current = audioContextRef.current.createGain();
+          gainNodeRef.current.connect(audioContextRef.current.destination);
+          gainNodeRef.current.gain.value = isMuted ? 0 : volume;
+          isInitializedRef.current = true;
+          
+          // 防止音频上下文挂起
+          if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume().catch(err => {
+              console.warn('无法恢复音频上下文:', err);
+            });
+          }
+        } catch (error) {
+          console.error('Web Audio API 初始化失败:', error);
+          setAudioContextSupported(false);
+        }
+      }, [volume, isMuted, audioContextSupported]);
+
+      // 更新音量
+      useEffect(() => {
+        if (gainNodeRef.current) {
+          gainNodeRef.current.gain.value = isMuted ? 0 : volume;
+        }
+      }, [volume, isMuted]);
+
+      // 组件卸载时清理资源
+      useEffect(() => {
+        return () => {
+          // 清理所有计时器
+          activeKeysTimersRef.current.forEach(timerId => clearTimeout(timerId));
+          activeKeysTimersRef.current.clear();
+          
+          // 停止所有音符
+          if (oscillatorsRef.current.size > 0) {
+            oscillatorsRef.current.forEach((data, note) => {
+              try {
+                const { oscillator, envelope } = data;
+                if (oscillator) {
+                  oscillator.stop();
+                  oscillator.disconnect();
+                }
+                if (envelope) {
+                  envelope.disconnect();
+                }
+              } catch (e) {
+                console.warn('清理音符失败:', e);
+              }
+            });
+            oscillatorsRef.current.clear();
+          }
+
+          // 关闭音频上下文
+          if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+            try {
+              audioContextRef.current.close();
+            } catch (err) {
+              console.warn('关闭AudioContext失败:', err);
+            }
+          }
+          
+          // 重置按键状态和计时引用
+          keysPressedRef.current = {};
+          lastPlayedTimeRef.current = {};
+          globalLastPlayedRef.current = 0;
+        };
+      }, []);
+
+      // 修复后的播放音符函数 - 允许同时点击多个琴键
+      const playNote = useCallback((frequency, note) => {
+        if (!audioContextSupported) return;
+        
+        // 强制初始化AudioContext
+        if (!audioContextRef.current) {
+          initAudioContext();
+          // 确保初始化成功后再继续
+          if (!audioContextRef.current) return;
+        }
+        
+        if (isMuted) return;
+
+        const now = Date.now();
+        
+        // 保留单个音符的节流 - 150ms内不重复触发同一音符
+        const noteLastPlayed = lastPlayedTimeRef.current[note] || 0;
+        if (now - noteLastPlayed < 150) {
+          return;
+        }
+        lastPlayedTimeRef.current[note] = now;
+
+        try {
+          // 确保音频上下文处于运行状态
+          if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume().catch(() => {
+              console.warn('无法恢复音频上下文');
+              return; // 如果无法恢复，则退出函数
+            });
+          }
+
+          // 如果音频上下文处于非运行状态，不继续执行
+          if (audioContextRef.current.state !== 'running') {
+            console.warn('音频上下文未处于运行状态:', audioContextRef.current.state);
+            return;
+          }
+
+          // 为防止资源泄漏，限制同时活跃的振荡器数量为6个
+          if (oscillatorsRef.current.size >= 6) {
+            // 找到最早播放的音符并立即停止它
+            const oldestNote = Array.from(oscillatorsRef.current.keys())[0];
+            const oldestData = oscillatorsRef.current.get(oldestNote);
+            if (oldestData) {
+              try {
+                // 立即停止最早的振荡器
+                oldestData.oscillator.stop();
+                oldestData.oscillator.disconnect();
+                oldestData.envelope.disconnect();
+              } catch (e) {
+                // 忽略已停止的振荡器错误
+              }
+              oscillatorsRef.current.delete(oldestNote);
+            }
+          }
+
+          // 如果已有相同音符在播放，先进行更彻底的清理
+          if (oscillatorsRef.current.has(note)) {
+            const existingData = oscillatorsRef.current.get(note);
+            try {
+              // 强制清理之前的振荡器资源
+              existingData.oscillator.disconnect();
+              existingData.envelope.disconnect();
+              try {
+                existingData.oscillator.stop();
+              } catch (e) {
+                // 忽略可能的停止错误
+              }
+            } catch (e) {
+              // 忽略清理错误
+            }
+            oscillatorsRef.current.delete(note);
+          }
+
+          // 创建新的振荡器和包络
+          const oscillator = audioContextRef.current.createOscillator();
+          const envelope = audioContextRef.current.createGain();
+
+          oscillator.type = 'triangle'; // 使用三角波获得更温暖的音色
+          oscillator.frequency.setValueAtTime(frequency, audioContextRef.current.currentTime);
+
+          // 设置音符包络（ADSR）- 更快的响应
+          envelope.gain.setValueAtTime(0, audioContextRef.current.currentTime);
+          envelope.gain.linearRampToValueAtTime(0.7, audioContextRef.current.currentTime + 0.01);
+          envelope.gain.exponentialRampToValueAtTime(0.6, audioContextRef.current.currentTime + 0.05);
+
+          // 连接音频节点
+          oscillator.connect(envelope);
+          envelope.connect(gainNodeRef.current);
+
+          // 启动振荡器
+          oscillator.start();
+          oscillatorsRef.current.set(note, { oscillator, envelope, startTime: now });
+
+          // 更新活跃键状态
+          setActiveKeys(prev => {
+            const newSet = new Set(prev);
+            newSet.add(note);
+            return newSet;
+          });
+
+          // 自动在短时间后移除活跃状态（视觉反馈）
+          setTimeout(() => {
+            setActiveKeys(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(note);
+              return newSet;
+            });
+          }, 200);
+          
+        } catch (error) {
+          console.error('播放音符失败:', error);
+          // 发生错误时尝试清理所有资源
+          try {
+            if (oscillatorsRef.current.has(note)) {
+              const data = oscillatorsRef.current.get(note);
+              if (data) {
+                data.oscillator.disconnect();
+                data.envelope.disconnect();
+                oscillatorsRef.current.delete(note);
+              }
+            }
+          } catch (e) {
+            // 忽略最终清理错误
+          }
+        }
+      }, [isMuted, audioContextSupported, initAudioContext]);
+
+      // 优化后的停止音符函数 - 更高效的资源清理
+      const stopNote = useCallback((note) => {
+        if (!audioContextSupported || !audioContextRef.current) return;
+        
+        // 立即执行停止，不延迟
+        const noteData = oscillatorsRef.current.get(note);
+        if (noteData) {
+          // 立即从映射中删除，防止重复处理
+          oscillatorsRef.current.delete(note);
+          
+          try {
+            const { oscillator, envelope } = noteData;
+            
+            // 快速释放，使用更短的释放时间
+            const releaseTime = 0.03;
+            const currentTime = audioContextRef.current.currentTime;
+            
+            // 取消所有之前的调度值并设置快速淡出
+            envelope.gain.cancelScheduledValues(currentTime);
+            envelope.gain.setValueAtTime(envelope.gain.value, currentTime);
+            envelope.gain.exponentialRampToValueAtTime(0.001, currentTime + releaseTime);
+            
+            // 立即停止振荡器
+            try {
+              oscillator.stop(currentTime + releaseTime);
+            } catch (e) {
+              // 忽略可能的错误
+            }
+            
+            // 设置一个非常短的延时后强制清理资源
+            setTimeout(() => {
+              try {
+                oscillator.disconnect();
+                envelope.disconnect();
+              } catch (e) {
+                // 忽略已停止的振荡器错误
+              }
+            }, 40); // 短于releaseTime以确保及时清理
+          } catch (error) {
+            console.error('停止音符时出错:', error);
+            // 发生错误时强制清理所有可能的资源引用
+            try {
+              if (noteData.oscillator) {
+                noteData.oscillator.disconnect();
+              }
+              if (noteData.envelope) {
+                noteData.envelope.disconnect();
+              }
+            } catch (e) {
+              // 最终清理尝试
+            }
+          }
+        }
+      }, [audioContextSupported]);
+
+      // 停止所有音符
+      const stopAllNotes = useCallback(() => {
+        if (!audioContextSupported || !audioContextRef.current) return;
+        
+        const notesToStop = Array.from(oscillatorsRef.current.keys());
+        
+        // 停止所有UI激活状态
+        setActiveKeys(new Set());
+        
+        // 批量停止音频
+        notesToStop.forEach(note => {
+          const noteData = oscillatorsRef.current.get(note);
+          if (noteData) {
+            try {
+              const { oscillator, envelope } = noteData;
+              // 快速淡出所有音符
+              const currentTime = audioContextRef.current.currentTime;
+              envelope.gain.cancelScheduledValues(currentTime);
+              envelope.gain.setValueAtTime(envelope.gain.value, currentTime);
+              envelope.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.05);
+              
+              // 100ms后彻底清理
+              setTimeout(() => {
+                try {
+                  oscillator.stop();
+                  oscillator.disconnect();
+                  envelope.disconnect();
+                } catch (e) {
+                  // 忽略已停止的振荡器错误
+                }
+              }, 100);
+            } catch (error) {
+              console.error('停止音符失败:', error);
+            }
+          }
+        });
+        
+        // 重置振荡器映射
+        setTimeout(() => {
+          oscillatorsRef.current.clear();
+        }, 150);
+      }, [audioContextSupported]);
+
+      // 处理键盘事件
+      useEffect(() => {
+        const handleKeyDown = (event) => {
+          // 如果焦点在输入框或文本区域，不处理键盘事件
+          if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+          
+          // 防止按住键盘重复触发
+          if (event.repeat || keysPressedRef.current[event.key.toLowerCase()]) return;
+          
+          const key = keys.find(k => k.keyBinding === event.key.toLowerCase());
+          if (key) {
+            // 标记按键为已按下
+            keysPressedRef.current[event.key.toLowerCase()] = true;
+            playNote(key.frequency, key.note);
+          }
+        };
+
+        const handleKeyUp = (event) => {
+          // 如果焦点在输入框或文本区域，不处理键盘事件
+          if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+          
+          const key = keys.find(k => k.keyBinding === event.key.toLowerCase());
+          if (key) {
+            // 移除按键标记
+            delete keysPressedRef.current[event.key.toLowerCase()];
+            
+            // 直接停止音符
+            stopNote(key.note);
+          }
+        };
+        
+        // 页面失去焦点时释放所有按键
+        const handleBlur = () => {
+          keysPressedRef.current = {};
+          stopAllNotes();
+        };
+        
+        // 页面切换时释放资源
+        const handleVisibilityChange = () => {
+          if (document.hidden) {
+            keysPressedRef.current = {};
+            stopAllNotes();
+          }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        window.addEventListener('blur', handleBlur);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          window.removeEventListener('keyup', handleKeyUp);
+          window.removeEventListener('blur', handleBlur);
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+      }, [playNote, stopNote, stopAllNotes]);
+
+      // 鼠标/触摸事件处理
+      const handleMouseDown = useCallback((key) => {
+        playNote(key.frequency, key.note);
+      }, [playNote]);
+
+      const handleMouseUp = useCallback((key) => {
+        // 直接停止音符
+        stopNote(key.note);
+      }, [stopNote]);
+
+      // 切换静音
+      const toggleMute = useCallback(() => {
+        setIsMuted(!isMuted);
+        if (!isMuted) {
+          stopAllNotes();
+        }
+      }, [isMuted, stopAllNotes]);
+
+      // 错误边界处理 - 如果不支持Web Audio API，显示友好提示
+      if (!audioContextSupported) {
+        return (
+          <div className="piano-container">
+            <div className="piano-error">
+              <i className="fas fa-music" style={{ fontSize: '2em' }}></i>
+              <h3>抱歉，您的浏览器不支持Web Audio API</h3>
+              <p>请尝试使用最新版的Chrome、Firefox或Safari浏览器。</p>
+            </div>
+            
+            <style data-jsx>{
+              `.piano-container {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 16px;
+                padding: 25px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+              }
+              
+              .piano-error {
+                text-align: center;
+                padding: 40px 20px;
+                color: white;
+              }
+              
+              .piano-error h3 {
+                margin: 15px 0;
+                font-size: 1.5em;
+              }
+              
+              .piano-error p {
+                opacity: 0.8;
+              }`
+            }</style>
+          </div>
+        );
+      }
+
+      return (
+        <div className="piano-container">
+          {/* 控制面板 */}
+          <div className="piano-controls">
+            <div className="controls-left">
+              <button 
+                className={`control-btn ${isMuted ? 'muted' : ''}`}
+                onClick={toggleMute}
+                title={isMuted ? '取消静音' : '静音'}
+              >
+                <i className={`fas ${isMuted ? 'fa-volume-mute' : 'fa-volume-up'}`}></i>
+              </button>
+              
+              <div className="volume-control">
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={volume}
+                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  className="volume-slider"
+                  title="音量"
+                />
+                <span className="volume-value">{Math.round(volume * 100)}%</span>
+              </div>
+            </div>
+
+            <div className="piano-title">
+              <i className="fas fa-music"></i>
+              <span>电子钢琴</span>
+            </div>
+
+            <div className="controls-right">
+              {/* 占位区域保持布局平衡 */}
+            </div>
+          </div>
+
+          {/* 钢琴键盘 */}
+          <div className="piano-keyboard">
+            <div className="keys-container">
+              {/* 白键 */}
+              <div className="white-keys">
+                {keys.filter(key => key.type === 'white').map((key) => (
+                  <button
+                    key={key.note}
+                    className={`piano-key white-key ${activeKeys.has(key.note) ? 'active' : ''}`}
+                    onMouseDown={() => handleMouseDown(key)}
+                    onMouseUp={() => handleMouseUp(key)}
+                    onMouseLeave={() => handleMouseUp(key)}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      handleMouseDown(key);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      handleMouseUp(key);
+                    }}
+                  >
+                    <span className="key-label">{key.note}</span>
+                    <span className="key-binding">{key.keyBinding.toUpperCase()}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* 黑键 */}
+              <div className="black-keys">
+                {keys.filter(key => key.type === 'black').map((key, index) => {
+                  // 计算黑键的位置
+                  const whiteKeyIndex = keys.filter(k => k.type === 'white').findIndex(k => 
+                    keys.indexOf(k) > keys.indexOf(key)
+                  );
+                  const leftOffset = whiteKeyIndex === -1 ? 
+                    keys.filter(k => k.type === 'white').length * 56 + 10 : 
+                    whiteKeyIndex * 56 + 10;
+
+                  return (
+                    <button
+                      key={key.note}
+                      className={`piano-key black-key ${activeKeys.has(key.note) ? 'active' : ''}`}
+                      style={{ left: `${leftOffset}px` }}
+                      onMouseDown={() => handleMouseDown(key)}
+                      onMouseUp={() => handleMouseUp(key)}
+                      onMouseLeave={() => handleMouseUp(key)}
+                      onTouchStart={(e) => {
+                        e.preventDefault();
+                        handleMouseDown(key);
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        handleMouseUp(key);
+                      }}
+                    >
+                      <span className="key-label">{key.note}</span>
+                      <span className="key-binding">{key.keyBinding.toUpperCase()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* 使用提示 */}
+          <div className="piano-instructions">
+            <div className="instruction-item">
+              <i className="fas fa-keyboard"></i>
+              <span>使用键盘按键或点击琴键演奏</span>
+            </div>
+            <div className="instruction-item">
+              <span>白键: A S D F G H J K L ; , .</span>
+            </div>
+            <div className="instruction-item">
+              <span>黑键: W E T Y U O P</span>
+            </div>
+          </div>
+
+          {/* Call of Silence 乐谱 */}
+          <div className="sheet-music-container">
+            <div className="sheet-music-header">
+              <h3>《Call of Silence》</h3>
+            </div>
+
+            <div className="sheet-music">
+              {/* 第一行 - 9个音符 */}
+              <div className="note-row">
+                {fullSheetMusic.slice(0, 9).map((noteItem, index) => (
+                  <div key={index} className="note-item">
+                    <div className="note-box">
+                      <div className="note-name">{noteItem.note}</div>
+                      <div className="key-binding">{noteItem.keyBinding}</div>
+                    </div>
+                    {index < 8 && <div className="note-arrow">→</div>}
+                  </div>
+                ))}
+              </div>
+              
+              {/* 第二行 - 9个音符 */}
+              <div className="note-row">
+                {fullSheetMusic.slice(9, 18).map((noteItem, index) => (
+                  <div key={index + 9} className="note-item">
+                    <div className="note-box">
+                      <div className="note-name">{noteItem.note}</div>
+                      <div className="key-binding">{noteItem.keyBinding}</div>
+                    </div>
+                    {index < 8 && <div className="note-arrow">→</div>}
+                  </div>
+                ))}
+              </div>
+              
+              {/* 第三行 - 10个音符 */}
+              <div className="note-row">
+                {fullSheetMusic.slice(18, 28).map((noteItem, index) => (
+                  <div key={index + 18} className="note-item">
+                    <div className="note-box">
+                      <div className="note-name">{noteItem.note}</div>
+                      <div className="key-binding">{noteItem.keyBinding}</div>
+                    </div>
+                    {index < 9 && <div className="note-arrow">→</div>}
+                  </div>
+                ))}
+              </div>
+              
+              {/* 第四行 - 10个音符 */}
+              <div className="note-row">
+                {fullSheetMusic.slice(28).map((noteItem, index) => (
+                  <div key={index + 28} className="note-item">
+                    <div className="note-box">
+                      <div className="note-name">{noteItem.note}</div>
+                      <div className="key-binding">{noteItem.keyBinding}</div>
+                    </div>
+                    {index < 9 && <div className="note-arrow">→</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <style data-jsx>{
+            `.piano-container {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              border-radius: 16px;
+              padding: 25px;
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+              position: relative;
+              overflow: hidden;
+              user-select: none;
+              width: 70%; /* 再缩小十分之一 */
+              margin: 0 auto; /* 居中显示 */
+            }
+
+            .piano-container::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: url('https://picsum.photos/800/600?blur=2') no-repeat center;
+              background-size: cover;
+              opacity: 0.05;
+              z-index: 0;
+            }
+
+            .piano-container > * {
+              position: relative;
+              z-index: 1;
+            }
+
+            .piano-controls {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 25px;
+              padding: 15px 20px;
+              background: rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .controls-left,
+            .controls-right {
+              display: flex;
+              align-items: center;
+              gap: 15px;
+              flex: 1;
+            }
+
+            .controls-right {
+              justify-content: flex-end;
+            }
+
+            .piano-title {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 10px;
+              color: white;
+              font-size: 1.2em;
+              font-weight: 600;
+              text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+              text-align: center;
+              flex: 1;
+            }
+
+            .control-btn {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 10px 16px;
+              background: rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 8px;
+              color: white;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              font-size: 0.9em;
+            }
+
+            .control-btn:hover {
+              background: rgba(255, 255, 255, 0.3);
+              transform: translateY(-1px);
+            }
+
+            .control-btn.active {
+              background: rgba(16, 185, 129, 0.8);
+              border-color: rgba(16, 185, 129, 1);
+            }
+
+            .control-btn.muted {
+              background: rgba(239, 68, 68, 0.8);
+              border-color: rgba(239, 68, 68, 1);
+            }
+
+            .volume-control {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            }
+
+            .volume-slider {
+              width: 80px;
+              height: 4px;
+              background: rgba(255, 255, 255, 0.3);
+              border-radius: 2px;
+              outline: none;
+              cursor: pointer;
+            }
+
+            .volume-slider::-webkit-slider-thumb {
+              appearance: none;
+              width: 16px;
+              height: 16px;
+              background: white;
+              border-radius: 50%;
+              cursor: pointer;
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            }
+
+            .volume-value {
+              color: white;
+              font-size: 0.8em;
+              min-width: 35px;
+              text-align: right;
+            }
+
+            .piano-keyboard {
+              background: linear-gradient(to bottom, #2c3e50, #34495e);
+              border-radius: 12px;
+              padding: 30px 20px 20px;
+              box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+              margin-bottom: 20px;
+            }
+
+            .keys-container {
+              position: relative;
+              height: 200px;
+              max-width: 100%;
+              overflow-x: visible;
+              overflow-y: visible;
+              display: flex;
+              justify-content: center;
+            }
+
+            .white-keys {
+              display: flex;
+              gap: 2px;
+              height: 100%;
+            }
+
+            .black-keys {
+              position: absolute;
+              top: 0;
+              left: 0;
+              height: 120px;
+            }
+
+            .piano-key {
+              border: none;
+              cursor: pointer;
+              transition: all 0.15s ease;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: flex-end;
+              padding: 10px 5px;
+              font-size: 0.7em;
+              font-weight: 500;
+              position: relative;
+              overflow: hidden;
+            }
+
+            .white-key {
+              width: 54px;
+              height: 200px;
+              background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+              border: 1px solid #dee2e6;
+              border-radius: 0 0 8px 8px;
+              color: #495057;
+              box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .white-key:hover {
+              background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+              transform: translateY(2px);
+            }
+
+            .white-key.active {
+              background: linear-gradient(to bottom, #4f46e5, #6366f1);
+              color: white;
+              transform: translateY(4px);
+              box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.3);
+            }
+
+            .black-key {
+              width: 30px;
+              height: 120px;
+              background: linear-gradient(to bottom, #212529, #343a40);
+              border: 1px solid #000;
+              border-radius: 0 0 6px 6px;
+              color: white;
+              position: absolute;
+              z-index: 2;
+              box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+            }
+
+            .black-key:hover {
+              background: linear-gradient(to bottom, #343a40, #495057);
+              transform: translateY(2px);
+            }
+
+            .black-key.active {
+              background: linear-gradient(to bottom, #6366f1, #4f46e5);
+              transform: translateY(4px);
+              box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+            }
+
+            .key-label {
+              margin-bottom: 4px;
+              font-weight: 600;
+            }
+
+            .key-binding {
+              font-size: 0.8em;
+              opacity: 0.7;
+              background: rgba(0, 0, 0, 0.1);
+              padding: 2px 4px;
+              border-radius: 3px;
+            }
+
+            .black-key .key-binding {
+              background: rgba(255, 255, 255, 0.1);
+            }
+
+            .piano-instructions {
+              display: flex;
+              flex-wrap: wrap;
+              justify-content: center;
+              gap: 20px;
+              color: rgba(255, 255, 255, 0.9);
+              font-size: 0.9em;
+              text-align: center;
+              margin-bottom: 30px;
+            }
+
+            .instruction-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 8px 12px;
+              background: rgba(255, 255, 255, 0.1);
+              border-radius: 6px;
+              backdrop-filter: blur(5px);
+            }
+
+            /* 乐谱样式 */
+            .sheet-music-container {
+              background: rgba(255, 255, 255, 0.1);
+              border-radius: 16px;
+              padding: 25px;
+              margin-top: 30px;
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              animation: fadeIn 0.5s ease;
+            }
+
+            .sheet-music-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 20px;
+              padding-bottom: 12px;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .sheet-music-header h3 {
+              color: white;
+              font-size: 1.3em;
+              font-weight: 600;
+              margin: 0;
+              text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+
+            .sheet-music {
+              display: flex;
+              flex-direction: column;
+              gap: 20px;
+              padding: 15px;
+              background: rgba(0, 0, 0, 0.1);
+              border-radius: 10px;
+              overflow-x: auto;
+            }
+            
+            .note-row {
+              display: flex;
+              flex-wrap: nowrap;
+              align-items: center;
+              gap: 5px;
+              margin-bottom: 15px;
+            }
+
+            .note-item {
+              display: flex;
+              align-items: center;
+              gap: 5px;
+            }
+
+            .note-box {
+              width: 40px;
+              height: 60px;
+              background: rgba(255, 255, 255, 0.9);
+              border-radius: 8px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+              color: #333;
+              transition: all 0.2s ease;
+            }
+
+            .note-box:hover {
+              transform: translateY(-3px);
+              background: white;
+              box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .note-name {
+              font-size: 1.3em;
+              font-weight: 700;
+              color: #4f46e5;
+            }
+
+            .note-box .key-binding {
+              background: #f3f4f6;
+              color: #374151;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-weight: 600;
+              font-size: 0.9em;
+            }
+
+            .note-arrow {
+              font-size: 1.2em;
+              color: rgba(255, 255, 255, 0.7);
+            }
+
+            /* 键盘动画效果 */
+            @keyframes keyPress {
+              0% { transform: translateY(0); }
+              50% { transform: translateY(3px); }
+              100% { transform: translateY(0); }
+            }
+
+            .piano-key.active {
+              animation: keyPress 0.15s ease;
+            }
+
+            /* 音波效果 */
+            .piano-key.active::after {
+              content: '';
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              width: 20px;
+              height: 20px;
+              background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+              border-radius: 50%;
+              transform: translate(-50%, -50%);
+              animation: ripple 0.6s ease-out;
+            }
+
+            @keyframes ripple {
+              0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+              }
+              100% {
+                width: 60px;
+                height: 60px;
+                opacity: 0;
+              }
+            }
+
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+
+            /* 响应式设计 */
+            @media (max-width: 768px) {
+              .piano-container {
+                padding: 20px;
+              }
+
+              .piano-controls {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+              }
+
+              .controls-left,
+              .controls-right {
+                width: 100%;
+                justify-content: center;
+                flex: none;
+              }
+
+              .piano-title {
+                width: 100%;
+                flex: none;
+              }
+
+              .keys-container {
+                height: 160px;
+              }
+
+              .white-key {
+                width: 45px;
+                height: 160px;
+              }
+
+              .black-key {
+                width: 25px;
+                height: 100px;
+              }
+
+              .piano-instructions {
+                flex-direction: column;
+                gap: 10px;
+              }
+
+              .instruction-item {
+                font-size: 0.8em;
+              }
+              
+              .sheet-music {
+                padding: 10px;
+                gap: 8px;
+              }
+              
+              .note-box {
+                width: 35px;
+                height: 55px;
+              }
+              
+              .note-name {
+                font-size: 1.1em;
+              }
+              
+              .sheet-music-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+              }
+            }
+
+            @media (max-width: 480px) {
+              .piano-container {
+                padding: 15px;
+              }
+
+              .white-key {
+                width: 38px;
+                height: 140px;
+                font-size: 0.6em;
+              }
+
+              .black-key {
+                width: 22px;
+                height: 85px;
+                font-size: 0.6em;
+              }
+
+              .keys-container {
+                height: 140px;
+              }
+
+              .volume-control {
+                flex-direction: column;
+                gap: 5px;
+              }
+
+              .volume-slider {
+                width: 60px;
+              }
+              
+              .note-box {
+                width: 30px;
+                height: 50px;
+              }
+              
+              .note-name {
+                font-size: 0.9em;
+              }
+              
+              .note-box .key-binding {
+                font-size: 0.7em;
+                padding: 1px 3px;
+              }
+            }`
+          }</style>
+        </div>
+      );
+    };
+
+    // 在DOM中渲染Piano组件
+    ReactDOM.createRoot(document.getElementById('piano-root')).render(
+      <React.StrictMode>
+        <Piano />
+      </React.StrictMode>
+    );
+    
+    // 清除控制台数据
+    window.addEventListener('load', function() {
+      console.clear();
+    });
+    
+    // 光线跟随效果
+    const mouseLight = document.getElementById('mouseLight');
+    
+    document.addEventListener('mousemove', function(e) {
+      // 获取鼠标在视口和页面中的位置
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      // 更新光线位置
+      mouseLight.style.left = x + 'px';
+      mouseLight.style.top = y + 'px';
+    });
+    
+    // 添加滚动时的光线位置更新
+    window.addEventListener('scroll', function() {
+      // 获取当前鼠标位置
+      const x = window.mouseX || window.innerWidth / 2;
+      const y = window.mouseY || window.innerHeight / 2;
+      
+      // 更新光线位置
+      mouseLight.style.left = x + 'px';
+      mouseLight.style.top = y + 'px';
+    });
+    
+    // 存储鼠标位置，用于滚动时更新
+    document.addEventListener('mousemove', function(e) {
+      window.mouseX = e.clientX;
+      window.mouseY = e.clientY;
+    });
+    
+    // 存储鼠标位置，用于滚动时更新
+    document.addEventListener('mousemove', function(e) {
+      window.mouseX = e.clientX;
+      window.mouseY = e.clientY;
+    });
+    
+
+  </script>
+</body>
+</html>
