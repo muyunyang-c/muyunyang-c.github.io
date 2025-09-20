@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>形状匹配游戏</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        .game-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            background-color: #f0f0f0;
+            border: 2px solid #333;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .triangle {
+            background-color: transparent;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            background-color: #3498db;
+        }
+
+        .circle {
+            border-radius: 50%;
+            background-color: #e74c3c;
+        }
+
+        .selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .matched {
+            animation: fadeOut 0.1s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+
+        .score-container {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">形状匹配游戏</h1>
+        <p class="text-gray-600">点击两个相同形状使它们消失！</p>
+    </div>
+
+    <div class="game-container rounded-lg shadow-xl"></div>
+    
+    <div class="score-container">
+        <p>匹配次数: <span id="score">0</span></p>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            shapes: [],
+            selectedShape: null,
+            score: 0,
+            gameContainer: document.querySelector('.game-container')
+        };
+
+        // 形状类型
+        const SHAPE_TYPES = {
+            TRIANGLE: 'triangle',
+            CIRCLE: 'circle'
+        };
+
+        // 初始化游戏
+        function initGame() {
+            resetGame();
+            createShapes();
+            updateScoreDisplay();
+        }
+
+        // 重置游戏状态
+        function resetGame() {
+            gameState.shapes = [];
+            gameState.selectedShape = null;
+            gameState.gameContainer.innerHTML = '';
+        }
+
+        // 创建形状
+        function createShapes() {
+            // 创建2个三角形
+            for (let i = 0; i < 2; i++) {
+                createShape(SHAPE_TYPES.TRIANGLE);
+            }
+            
+            // 创建2个圆形
+            for (let i = 0; i < 2; i++) {
+                createShape(SHAPE_TYPES.CIRCLE);
+            }
+        }
+
+        // 创建单个形状并随机位置
+        function createShape(type) {
+            const shape = document.createElement('div');
+            shape.classList.add('shape', type);
+            shape.dataset.type = type;
+            
+            // 在容器内生成随机位置
+            const containerWidth = gameState.gameContainer.clientWidth;
+            const containerHeight = gameState.gameContainer.clientHeight;
+            const shapeSize = 40; // 形状大小
+            
+            // 计算允许的最大位置，确保形状完全在容器内
+            const maxX = containerWidth - shapeSize;
+            const maxY = containerHeight - shapeSize;
+            
+            let posX, posY, overlap;
+            
+            // 持续生成位置直到找到一个不重叠的位置
+            do {
+                overlap = false;
+                posX = Math.floor(Math.random() * maxX);
+                posY = Math.floor(Math.random() * maxY);
+                
+                // 检查与现有形状是否重叠
+                for (const existingShape of gameState.shapes) {
+                    const existingX = parseInt(existingShape.style.left);
+                    const existingY = parseInt(existingShape.style.top);
+                    
+                    // 定义形状间的最小距离，避免重叠
+                    const minDistance = shapeSize + 10;
+                    
+                    // 检查新位置是否与任何现有形状太接近
+                    if (Math.abs(posX - existingX) < minDistance && Math.abs(posY - existingY) < minDistance) {
+                        overlap = true;
+                        break;
+                    }
+                }
+            } while (overlap);
+            
+            shape.style.left = `${posX}px`;
+            shape.style.top = `${posY}px`;
+            
+            // 直接为形状绑定点击事件，提升响应速度
+            shape.addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleShapeClick(shape);
+            });
+            
+            gameState.gameContainer.appendChild(shape);
+            gameState.shapes.push(shape);
+            
+            return shape;
+        }
+
+        // 处理形状点击
+        function handleShapeClick(shape) {
+            // 如果还没有选中形状
+            if (!gameState.selectedShape) {
+                gameState.selectedShape = shape;
+                shape.classList.add('selected');
+                return;
+            }
+            
+            // 如果点击了同一个形状两次
+            if (gameState.selectedShape === shape) {
+                gameState.selectedShape.classList.remove('selected');
+                gameState.selectedShape = null;
+                return;
+            }
+            
+            // 检查形状是否匹配
+            if (gameState.selectedShape.dataset.type === shape.dataset.type) {
+                // 形状匹配 - 使它们消失
+                gameState.selectedShape.classList.add('matched');
+                shape.classList.add('matched');
+                
+                // 移除'selected'类
+                gameState.selectedShape.classList.remove('selected');
+                
+                // 更新分数
+                gameState.score++;
+                updateScoreDisplay();
+                
+                // 存储形状类型并立即重置选中的形状，以便更快地点击
+                const shapeType = gameState.selectedShape.dataset.type;
+                const matchedShape1 = gameState.selectedShape;
+                const matchedShape2 = shape;
+                gameState.selectedShape = null;
+                
+                // 立即生成新的形状，提升游戏流畅度
+                createShape(shapeType);
+                createShape(shapeType);
+                
+                // 动画后移除形状
+                setTimeout(() => {
+                    // 从DOM和游戏状态中移除形状
+                    const index1 = gameState.shapes.indexOf(matchedShape1);
+                    const index2 = gameState.shapes.indexOf(matchedShape2);
+                    
+                    if (index1 !== -1) {
+                        gameState.shapes.splice(index1, 1);
+                        matchedShape1.remove();
+                    }
+                    
+                    if (index2 !== -1) {
+                        gameState.shapes.splice(index2 > index1 ? index2 - 1 : index2, 1);
+                        matchedShape2.remove();
+                    }
+                }, 100);
+            } else {
+                // 形状不匹配 - 取消选择两者
+                gameState.selectedShape.classList.remove('selected');
+                gameState.selectedShape = null;
+            }
+        }
+
+        // 更新分数显示
+        function updateScoreDisplay() {
+            document.getElementById('score').textContent = gameState.score;
+        }
+
+        // 页面加载时初始化游戏
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
